@@ -1,0 +1,252 @@
+:root {
+  color-scheme: dark;
+  font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(100, 181, 246, 0.18), transparent 30rem),
+    linear-gradient(180deg, #08111a 0%, #02050a 100%);
+  color: #ecf5ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+button,
+canvas {
+  font: inherit;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(18rem, 22rem) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.sidebar {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.hud-card,
+.panel {
+  background: rgba(8, 13, 21, 0.88);
+  border: 1px solid rgba(126, 167, 210, 0.24);
+  border-radius: 1.1rem;
+  box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.34);
+}
+
+.hud-card {
+  padding: 1rem 1.1rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8ab7e1;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: clamp(1.45rem, 2.4vw, 2.2rem);
+}
+
+h2 {
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+}
+
+.lede {
+  margin: 0.7rem 0 0;
+  color: #b6cbe3;
+  line-height: 1.5;
+}
+
+.legend-grid,
+.hud-grid {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.legend-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.legend-grid div,
+.hud-grid div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+dt {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7199c1;
+}
+
+dd {
+  margin: 0;
+  color: #eff6ff;
+}
+
+.hud-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.stage-shell {
+  position: relative;
+  min-height: calc(100vh - 2rem);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0.75rem;
+  background:
+    linear-gradient(180deg, rgba(8, 13, 21, 0.86), rgba(1, 4, 8, 0.96)),
+    radial-gradient(circle at center, rgba(76, 145, 214, 0.08), transparent 55%);
+  border: 1px solid rgba(126, 167, 210, 0.18);
+  border-radius: 1.25rem;
+  box-shadow: inset 0 0 0 1px rgba(198, 230, 255, 0.04);
+}
+
+#game-canvas {
+  width: min(100%, 720px);
+  height: auto;
+  aspect-ratio: 360 / 640;
+  background: #050b12;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(126, 167, 210, 0.18);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  pointer-events: none;
+}
+
+.overlay > * {
+  pointer-events: auto;
+}
+
+.panel {
+  width: min(100%, 46rem);
+  padding: 1.2rem 1.3rem;
+}
+
+.panel-wide {
+  width: min(100%, 62rem);
+}
+
+.button-row,
+.upgrade-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.action {
+  border: 1px solid rgba(136, 170, 207, 0.28);
+  border-radius: 999px;
+  padding: 0.75rem 1.1rem;
+  background: rgba(11, 22, 36, 0.94);
+  color: #e5f1ff;
+  cursor: pointer;
+}
+
+.action:disabled,
+.shop-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.action-primary {
+  background: linear-gradient(135deg, #7be1ff, #4f9bff);
+  color: #03101d;
+  border-color: transparent;
+  font-weight: 800;
+}
+
+.shop-layout {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.shop-section {
+  border-top: 1px solid rgba(126, 167, 210, 0.12);
+  padding-top: 1rem;
+}
+
+.shop-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin-bottom: 0.65rem;
+}
+
+.shop-current {
+  color: #9db8d7;
+  font-size: 0.9rem;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.7rem;
+}
+
+.shop-item {
+  display: grid;
+  gap: 0.4rem;
+  text-align: left;
+  padding: 0.85rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(126, 167, 210, 0.14);
+  background: rgba(7, 13, 21, 0.96);
+  color: #eef6ff;
+}
+
+.shop-item strong {
+  color: #87ffd8;
+}
+
+.shop-item.is-owned {
+  border-color: rgba(123, 225, 255, 0.4);
+  background: rgba(11, 26, 40, 0.96);
+}
+
+@media (max-width: 980px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-shell {
+    min-height: 0;
+  }
+}

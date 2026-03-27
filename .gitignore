@@ -1,0 +1,9 @@
+.DS_Store
+
+# Reference material only; keep out of the rewrite repo.
+references/
+
+# Rewrite prototype dependencies and build output.
+rewrite-prototype/node_modules/
+rewrite-prototype/dist/
+rewrite-prototype/.vite/
