@@ -7,3 +7,7 @@ references/
 rewrite-prototype/node_modules/
 rewrite-prototype/dist/
 rewrite-prototype/.vite/
+
+# Xcode user state.
+*.xcuserstate
+xcuserdata/
