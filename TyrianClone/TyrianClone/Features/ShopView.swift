@@ -11,8 +11,8 @@ struct ShopView: View {
         let earned = appModel.lastOutcome?.earned ?? 0
 
         Group {
-            Section("Hangar") {
-                Text("Stage cleared. You banked \(earned) credits this run and now have \(appModel.runState.credits) credits ready to spend.")
+            Section(appModel.currentNodeTitle) {
+                Text("You banked \(earned) credits in the last mission and now have \(appModel.runState.credits) credits available.")
                 Button("Front Power \(appModel.runState.loadout.frontPower)/\(Economy.maxWeaponPower()) · \(frontUpgradePrice) cr") {
                     appModel.upgradeFrontPower()
                 }
@@ -23,8 +23,8 @@ struct ShopView: View {
                 }
                 .disabled(appModel.runState.loadout.rearPower >= Economy.maxWeaponPower() || appModel.runState.credits < rearUpgradePrice)
 
-                Button("Continue Sortie") {
-                    appModel.continueToNextSortie()
+                Button("Depart Spaceport") {
+                    appModel.continueFromCurrentNode()
                 }
 
                 Button("Reset Campaign", role: .destructive) {
@@ -48,12 +48,13 @@ struct ShopView: View {
             ForEach(items, id: \.id) { item in
                 if let shopItem = shopItemViewModel(for: item) {
                     let isOwned = currentID == shopItem.id
+                    let alreadyOwned = appModel.isOwned(itemID: shopItem.id)
                     Button {
                         appModel.purchase(slot: slot, itemID: shopItem.id)
                     } label: {
-                        LabeledContent(shopItem.name, value: isOwned ? "Equipped" : "\(shopItem.basePrice) cr")
+                        LabeledContent(shopItem.name, value: isOwned ? "Equipped" : alreadyOwned ? "Equip" : "\(shopItem.basePrice) cr")
                     }
-                    .disabled(isOwned || appModel.runState.credits < shopItem.basePrice)
+                    .disabled(isOwned || (!alreadyOwned && appModel.runState.credits < shopItem.basePrice))
                 }
             }
         }
@@ -61,6 +62,8 @@ struct ShopView: View {
 
     private func shopItemViewModel<Item>(for item: Item) -> (id: String, name: String, basePrice: Int)? {
         switch item {
+        case let ship as ShipDefinition:
+            return (ship.id, ship.name, ship.shopCost)
         case let weapon as WeaponArchetype:
             return (weapon.id, weapon.name, weapon.basePrice)
         case let shield as ShieldArchetype:

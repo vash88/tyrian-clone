@@ -11,3 +11,6 @@ rewrite-prototype/.vite/
 # Xcode user state.
 *.xcuserstate
 xcuserdata/
+
+# SwiftPM build output.
+.build/

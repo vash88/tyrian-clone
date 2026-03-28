@@ -105,6 +105,85 @@ final class MetalRenderer {
             )
         }
 
+        for pickup in snapshot.pickups {
+            let pickupColor: SIMD4<Float>
+            let points: [CGPoint]
+
+            switch pickup.kind {
+            case .frontPower:
+                pickupColor = color(hex: "#ffd86a")
+                points = [
+                    CGPoint(x: 0, y: -10),
+                    CGPoint(x: 10, y: 0),
+                    CGPoint(x: 0, y: 10),
+                    CGPoint(x: -10, y: 0)
+                ]
+            case .rearPower:
+                pickupColor = color(hex: "#7ef0c9")
+                points = [
+                    CGPoint(x: 0, y: -9),
+                    CGPoint(x: 8, y: -2),
+                    CGPoint(x: 8, y: 2),
+                    CGPoint(x: 0, y: 9),
+                    CGPoint(x: -8, y: 2),
+                    CGPoint(x: -8, y: -2)
+                ]
+            case .armorRepair:
+                pickupColor = color(hex: "#8fc5ff")
+                points = [
+                    CGPoint(x: -9, y: -3),
+                    CGPoint(x: -3, y: -3),
+                    CGPoint(x: -3, y: -9),
+                    CGPoint(x: 3, y: -9),
+                    CGPoint(x: 3, y: -3),
+                    CGPoint(x: 9, y: -3),
+                    CGPoint(x: 9, y: 3),
+                    CGPoint(x: 3, y: 3),
+                    CGPoint(x: 3, y: 9),
+                    CGPoint(x: -3, y: 9),
+                    CGPoint(x: -3, y: 3),
+                    CGPoint(x: -9, y: 3)
+                ]
+            case .shieldRestore:
+                pickupColor = color(hex: "#a3a8ff")
+                points = [
+                    CGPoint(x: 0, y: -10),
+                    CGPoint(x: 9, y: -4),
+                    CGPoint(x: 9, y: 4),
+                    CGPoint(x: 0, y: 10),
+                    CGPoint(x: -9, y: 4),
+                    CGPoint(x: -9, y: -4)
+                ]
+            case .credits, .datacube, .sidekickAmmo, .scriptedItem:
+                pickupColor = color(hex: "#ffffff")
+                points = [
+                    CGPoint(x: 0, y: -8),
+                    CGPoint(x: 8, y: 0),
+                    CGPoint(x: 0, y: 8),
+                    CGPoint(x: -8, y: 0)
+                ]
+            }
+
+            appendOutlinePolygon(
+                centeredAt: pickup.position,
+                points: points,
+                thickness: 1.75,
+                color: pickupColor,
+                vertices: &vertices,
+                transform: transform
+            )
+        }
+
+        for hazard in snapshot.hazards {
+            appendRectOutline(
+                hazard.frame,
+                thickness: 2,
+                color: color(hex: hazard.colorHex, alpha: 0.45),
+                vertices: &vertices,
+                transform: transform
+            )
+        }
+
         for projectile in snapshot.projectiles {
             let projectileColor = color(hex: projectile.colorHex)
             if projectile.isPlayerOwned {
@@ -160,6 +239,17 @@ final class MetalRenderer {
                     transform: transform
                 )
             }
+        }
+
+        for weakPoint in snapshot.bossWeakPoints {
+            appendRing(
+                center: weakPoint.position,
+                radius: 11,
+                thickness: 2,
+                color: color(hex: weakPoint.colorHex, alpha: 0.9),
+                vertices: &vertices,
+                transform: transform
+            )
         }
 
         for sidekick in snapshot.sidekicks {

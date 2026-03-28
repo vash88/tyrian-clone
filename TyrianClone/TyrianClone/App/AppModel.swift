@@ -3,34 +3,78 @@ import Foundation
 
 @MainActor
 final class AppModel: ObservableObject {
-    @Published private(set) var screen: AppScreen = .briefing
-    @Published private(set) var runState: RunState = .default
-    @Published private(set) var hudSnapshot: HUDSnapshot = .idle(from: .default)
+    @Published private(set) var screen: AppScreen
+    @Published private(set) var runState: RunState
+    @Published private(set) var hudSnapshot: HUDSnapshot
     @Published private(set) var lastOutcome: StageOutcome?
     @Published private(set) var gameplayViewModel: GameplayViewModel?
 
-    let catalog = PrototypeData.catalog
-    let stage = PrototypeData.stage
+    let catalog = TyrianCatalogData.upgradeCatalog
+    let tyrianCatalog = TyrianCatalogData.catalog
+
+    private let campaign = CampaignGraphRunner(catalog: TyrianCatalogData.catalog)
+
+    init() {
+        let initialState = RunState.default
+        runState = initialState
+        screen = campaign.screen(for: initialState)
+        hudSnapshot = .idle(from: initialState, stageDuration: TyrianCatalogData.levels.first?.duration ?? 0)
+    }
+
+    var currentNode: NavNodeDefinition? {
+        campaign.currentNode(in: runState)
+    }
+
+    var currentLevel: LevelDefinition? {
+        campaign.currentLevel(in: runState)
+    }
+
+    var currentDatacube: DatacubeDefinition? {
+        campaign.currentDatacube(in: runState)
+    }
+
+    var currentBranchOptions: [NavNodeDefinition] {
+        campaign.branchOptions(in: runState)
+    }
+
+    var currentNodeTitle: String {
+        campaign.currentNodeDisplayTitle(in: runState)
+    }
+
+    var currentNodeBody: String {
+        switch currentNode?.id {
+        case "tyrian-briefing":
+            return "Microsol pressure is closing around Tyrian. Push through the outskirts, bank credits, and make your first port stop at Savara before the route opens wider."
+        case "episode-slice-end":
+            return "The first route slice is complete. The campaign graph, shop flow, branch logic, and boss progression are now driving the parity build instead of a single sortie loop."
+        default:
+            return "Proceed to the next campaign node."
+        }
+    }
 
     func launchSortie() {
+        launchCurrentMission()
+    }
+
+    func launchCurrentMission() {
+        guard let level = currentLevel else {
+            continueFromCurrentNode()
+            return
+        }
+
         runState.earnedThisSortie = 0
         lastOutcome = nil
         screen = .stage
 
-        let viewModel = GameplayViewModel(runState: runState, stage: stage)
+        let viewModel = GameplayViewModel(runState: runState, stage: level)
         viewModel.onStateChanged = { [weak self] runState, hudSnapshot in
             guard let self else { return }
             self.runState = runState
             self.hudSnapshot = hudSnapshot
         }
-        viewModel.onOutcome = { [weak self] outcome, runState in
+        viewModel.onOutcome = { [weak self] outcome, updatedRunState in
             guard let self else { return }
-            self.lastOutcome = outcome
-            self.runState = runState
-            self.hudSnapshot = .idle(from: runState)
-            self.gameplayViewModel?.stop()
-            self.gameplayViewModel = nil
-            self.screen = outcome.kind == .cleared ? .shop : .destroyed
+            self.handleMissionOutcome(outcome, updatedRunState: updatedRunState, levelID: level.id)
         }
 
         gameplayViewModel?.stop()
@@ -39,25 +83,45 @@ final class AppModel: ObservableObject {
         viewModel.start()
     }
 
+    func continueFromCurrentNode() {
+        gameplayViewModel?.stop()
+        gameplayViewModel = nil
+        runState = campaign.advanceFromPassiveNode(runState)
+        syncPassiveState()
+
+        if currentLevel != nil {
+            launchCurrentMission()
+        }
+    }
+
+    func chooseBranch(nextNodeID: String) {
+        gameplayViewModel?.stop()
+        gameplayViewModel = nil
+        runState = campaign.chooseBranch(nextNodeID, in: runState)
+        syncPassiveState()
+
+        if currentLevel != nil {
+            launchCurrentMission()
+        }
+    }
+
     func restartCampaign() {
         gameplayViewModel?.stop()
         gameplayViewModel = nil
         runState = .default
         lastOutcome = nil
-        screen = .briefing
-        hudSnapshot = .idle(from: runState)
+        syncPassiveState()
     }
 
     func returnToBriefing() {
         gameplayViewModel?.stop()
         gameplayViewModel = nil
-        screen = .briefing
-        hudSnapshot = .idle(from: runState)
-    }
-
-    func continueToNextSortie() {
-        runState.sortie += 1
-        launchSortie()
+        runState.currentNodeID = "tyrian-briefing"
+        if !runState.visitedNodeIDs.contains("tyrian-briefing") {
+            runState.visitedNodeIDs.append("tyrian-briefing")
+        }
+        lastOutcome = nil
+        syncPassiveState()
     }
 
     func purchase(slot: UpgradeSlot, itemID: String) {
@@ -69,14 +133,21 @@ final class AppModel: ObservableObject {
             return
         }
 
-        let price = Economy.basePrice(in: catalog, slot: slot, itemID: itemID)
-        guard price > 0, runState.credits >= price else {
+        guard let rule = activeShopRules().first(where: { $0.itemID == itemID && slotFor(itemKind: $0.itemKind) == slot }) else {
             return
         }
 
-        runState.credits -= price
+        let alreadyOwned = runState.ownedItemIDs.contains(itemID) || rule.basePrice == 0
+        if !alreadyOwned {
+            guard runState.credits >= rule.basePrice else {
+                return
+            }
+            runState.credits -= rule.basePrice
+            runState.ownedItemIDs.append(itemID)
+        }
+
         setCurrentItemID(for: slot, itemID: itemID)
-        hudSnapshot = .idle(from: runState)
+        hudSnapshot = .idle(from: runState, stageDuration: currentLevel?.duration ?? TyrianCatalogData.levels.first?.duration ?? 0)
     }
 
     func upgradeFrontPower() {
@@ -88,18 +159,85 @@ final class AppModel: ObservableObject {
     }
 
     func shopSections() -> [ShopSection<any Equatable>] {
-        [
-            ShopSection(title: "Front Weapon", slot: .front, currentID: runState.loadout.frontWeaponID, items: catalog.frontWeapons),
-            ShopSection(title: "Rear Weapon", slot: .rear, currentID: runState.loadout.rearWeaponID, items: catalog.rearWeapons),
-            ShopSection(title: "Shield", slot: .shield, currentID: runState.loadout.shieldID, items: catalog.shields),
-            ShopSection(title: "Generator", slot: .generator, currentID: runState.loadout.generatorID, items: catalog.generators),
-            ShopSection(title: "Left Sidekick", slot: .leftSidekick, currentID: runState.loadout.leftSidekickID, items: catalog.sidekicks),
-            ShopSection(title: "Right Sidekick", slot: .rightSidekick, currentID: runState.loadout.rightSidekickID, items: catalog.sidekicks)
-        ]
+        let rules = activeShopRules()
+        var sections: [ShopSection<any Equatable>] = []
+
+        if !rules.filter({ $0.itemKind == .ship }).isEmpty {
+            sections.append(
+                ShopSection(
+                    title: "Ship",
+                    slot: .ship,
+                    currentID: runState.loadout.shipID,
+                    items: rules.filter { $0.itemKind == .ship }.compactMap { TyrianCatalogData.shipIndex[$0.itemID] }
+                )
+            )
+        }
+
+        if !rules.filter({ $0.itemKind == .frontWeapon }).isEmpty {
+            sections.append(
+                ShopSection(
+                    title: "Front Weapon",
+                    slot: .front,
+                    currentID: runState.loadout.frontWeaponID,
+                    items: rules.filter { $0.itemKind == .frontWeapon }.compactMap { TyrianCatalogData.frontWeaponIndex[$0.itemID] }
+                )
+            )
+        }
+
+        if !rules.filter({ $0.itemKind == .rearWeapon }).isEmpty {
+            sections.append(
+                ShopSection(
+                    title: "Rear Weapon",
+                    slot: .rear,
+                    currentID: runState.loadout.rearWeaponID,
+                    items: rules.filter { $0.itemKind == .rearWeapon }.compactMap { TyrianCatalogData.rearWeaponIndex[$0.itemID] }
+                )
+            )
+        }
+
+        if !rules.filter({ $0.itemKind == .shield }).isEmpty {
+            sections.append(
+                ShopSection(
+                    title: "Shield",
+                    slot: .shield,
+                    currentID: runState.loadout.shieldID,
+                    items: rules.filter { $0.itemKind == .shield }.compactMap { TyrianCatalogData.shieldIndex[$0.itemID] }
+                )
+            )
+        }
+
+        if !rules.filter({ $0.itemKind == .generator }).isEmpty {
+            sections.append(
+                ShopSection(
+                    title: "Generator",
+                    slot: .generator,
+                    currentID: runState.loadout.generatorID,
+                    items: rules.filter { $0.itemKind == .generator }.compactMap { TyrianCatalogData.generatorIndex[$0.itemID] }
+                )
+            )
+        }
+
+        if !rules.filter({ $0.itemKind == .sidekick }).isEmpty {
+            let sidekickItems = rules.filter { $0.itemKind == .sidekick }.compactMap { TyrianCatalogData.sidekickIndex[$0.itemID] }
+            sections.append(
+                ShopSection(title: "Left Sidekick", slot: .leftSidekick, currentID: runState.loadout.leftSidekickID, items: sidekickItems)
+            )
+            sections.append(
+                ShopSection(title: "Right Sidekick", slot: .rightSidekick, currentID: runState.loadout.rightSidekickID, items: sidekickItems)
+            )
+        }
+
+        return sections
+    }
+
+    func isOwned(itemID: String) -> Bool {
+        runState.ownedItemIDs.contains(itemID)
     }
 
     func currentItemID(for slot: UpgradeSlot) -> String {
         switch slot {
+        case .ship:
+            runState.loadout.shipID
         case .front:
             runState.loadout.frontWeaponID
         case .rear:
@@ -115,8 +253,49 @@ final class AppModel: ObservableObject {
         }
     }
 
+    private func activeShopRules() -> [ShopInventoryRule] {
+        campaign.shopRules(in: runState)
+    }
+
+    private func slotFor(itemKind: ShopItemKind) -> UpgradeSlot {
+        switch itemKind {
+        case .ship:
+            .ship
+        case .frontWeapon, .frontPowerUpgrade:
+            .front
+        case .rearWeapon, .rearPowerUpgrade:
+            .rear
+        case .shield:
+            .shield
+        case .generator:
+            .generator
+        case .sidekick:
+            .leftSidekick
+        }
+    }
+
+    private func handleMissionOutcome(_ outcome: StageOutcome, updatedRunState: RunState, levelID: String) {
+        lastOutcome = outcome
+        gameplayViewModel?.stop()
+        gameplayViewModel = nil
+
+        if outcome.kind == .cleared {
+            var clearedState = updatedRunState
+            clearedState.loadout.frontPower = min(Economy.maxWeaponPower(), clearedState.loadout.frontPower + outcome.frontPowerReward)
+            clearedState.loadout.rearPower = min(Economy.maxWeaponPower(), clearedState.loadout.rearPower + outcome.rearPowerReward)
+            runState = campaign.applyMissionClear(clearedState, missionID: levelID)
+            syncPassiveState()
+        } else {
+            runState = campaign.applyMissionFailure(updatedRunState, missionID: levelID)
+            screen = .destroyed
+            hudSnapshot = .idle(from: runState, stageDuration: currentLevel?.duration ?? TyrianCatalogData.levels.first?.duration ?? 0)
+        }
+    }
+
     private func setCurrentItemID(for slot: UpgradeSlot, itemID: String) {
         switch slot {
+        case .ship:
+            runState.loadout.shipID = itemID
         case .front:
             runState.loadout.frontWeaponID = itemID
         case .rear:
@@ -169,6 +348,11 @@ final class AppModel: ObservableObject {
         } else {
             runState.loadout.rearPower += 1
         }
-        hudSnapshot = .idle(from: runState)
+        hudSnapshot = .idle(from: runState, stageDuration: currentLevel?.duration ?? TyrianCatalogData.levels.first?.duration ?? 0)
+    }
+
+    private func syncPassiveState() {
+        screen = campaign.screen(for: runState)
+        hudSnapshot = .idle(from: runState, stageDuration: currentLevel?.duration ?? TyrianCatalogData.levels.first?.duration ?? 0)
     }
 }

@@ -10,11 +10,13 @@ enum Economy {
     }
 
     static func maxWeaponPower() -> Int {
-        5
+        11
     }
 
     static func slotLabel(_ slot: UpgradeSlot) -> String {
         switch slot {
+        case .ship:
+            "Ship"
         case .front:
             "Front Weapon"
         case .rear:
@@ -32,6 +34,8 @@ enum Economy {
 
     static func basePrice(in catalog: UpgradeCatalog, slot: UpgradeSlot, itemID: String) -> Int {
         switch slot {
+        case .ship:
+            catalog.ships.first(where: { $0.id == itemID })?.shopCost ?? 0
         case .front:
             catalog.frontWeapons.first(where: { $0.id == itemID })?.basePrice ?? 0
         case .rear:

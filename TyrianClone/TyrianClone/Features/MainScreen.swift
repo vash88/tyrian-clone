@@ -40,12 +40,32 @@ struct MainScreen: View {
     @ViewBuilder
     private var stateSections: some View {
         switch appModel.screen {
-        case .briefing:
-            BriefingView(stageName: appModel.stage.name, onLaunch: appModel.launchSortie, onReset: appModel.restartCampaign)
+        case .intermission:
+            IntermissionView(
+                title: appModel.currentNodeTitle,
+                bodyText: appModel.currentNodeBody,
+                primaryActionTitle: appModel.currentLevel == nil ? "Continue" : "Launch Mission",
+                onPrimaryAction: appModel.continueFromCurrentNode,
+                onReset: appModel.restartCampaign
+            )
         case .stage:
             EmptyView()
         case .shop:
             ShopView(appModel: appModel)
+        case .datacube:
+            if let datacube = appModel.currentDatacube {
+                DatacubeView(datacube: datacube, onContinue: appModel.continueFromCurrentNode)
+            }
+        case .branch:
+            BranchView(options: appModel.currentBranchOptions, onChoose: appModel.chooseBranch)
+        case .episodeTransition:
+            IntermissionView(
+                title: appModel.currentNodeTitle,
+                bodyText: appModel.currentNodeBody,
+                primaryActionTitle: "Restart Campaign",
+                onPrimaryAction: appModel.restartCampaign,
+                onReset: appModel.returnToBriefing
+            )
         case .destroyed:
             DestroyedView(
                 outcome: appModel.lastOutcome,
@@ -91,12 +111,10 @@ struct MainScreen: View {
 
     private var statusTitle: String {
         switch appModel.screen {
-        case .briefing:
-            appModel.stage.name
+        case .intermission, .shop, .datacube, .branch, .episodeTransition:
+            appModel.currentNodeTitle
         case .stage:
-            "Stage Active"
-        case .shop:
-            "Hangar"
+            appModel.currentLevel?.name ?? "Mission Active"
         case .destroyed:
             "Hull Breach"
         }

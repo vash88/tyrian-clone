@@ -43,7 +43,7 @@ final class GameplayViewModel: ObservableObject {
             isFiring: autopilot.isFiring,
             isLeftSidekickActive: autopilot.isLeftSidekickActive,
             isRightSidekickActive: autopilot.isRightSidekickActive,
-            didToggleRearMode: false,
+            didToggleRearMode: autopilot.didToggleRearMode,
             isPaused: false
         )
 
@@ -154,7 +154,8 @@ final class GameplayViewModel: ObservableObject {
             vector: smoothedAutopilotVector.clampedMagnitude(maximum: 1),
             isFiring: weaponPolicy.isFiring,
             isLeftSidekickActive: weaponPolicy.isLeftSidekickActive,
-            isRightSidekickActive: weaponPolicy.isRightSidekickActive
+            isRightSidekickActive: weaponPolicy.isRightSidekickActive,
+            didToggleRearMode: shouldToggleRearMode(boss: boss)
         )
     }
 
@@ -345,6 +346,17 @@ final class GameplayViewModel: ObservableObject {
         simulation.enemies.first(where: isBoss)
     }
 
+    private func shouldToggleRearMode(boss: EnemyState?) -> Bool {
+        let rearWeapon = PrototypeData.rearWeaponIndex[simulation.runState.loadout.rearWeaponID] ?? PrototypeData.rearWeapons[0]
+        guard rearWeapon.modeB != nil else {
+            return false
+        }
+
+        let closeEnemyCount = simulation.enemies.filter { !$0.archetypeID.isEmpty && $0.y < simulation.player.y + 120 }.count
+        let desiredModeIndex = boss != nil || closeEnemyCount >= 4 ? 1 : 0
+        return simulation.player.rearModeIndex != desiredModeIndex
+    }
+
     private func isBoss(_ enemy: EnemyState) -> Bool {
         (PrototypeData.enemyIndex[enemy.archetypeID] ?? PrototypeData.enemyArchetypes[0]).behavior == .boss
     }
@@ -360,6 +372,7 @@ private struct AutopilotPlan {
     let isFiring: Bool
     let isLeftSidekickActive: Bool
     let isRightSidekickActive: Bool
+    let didToggleRearMode: Bool
 }
 
 private struct WeaponPolicy {

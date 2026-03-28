@@ -11,9 +11,9 @@ struct DestroyedView: View {
             Section("Destroyed") {
                 Text("Hull Breach")
                     .font(.headline)
-                Text("You lost the run with \(earned) credits banked this sortie. This parity build resets the campaign on destruction so the loop stays sharp and readable.")
+                Text("You lost the mission after collecting \(earned) mission credits. Purchased equipment remains part of the campaign loadout, but mission-local gains were not carried forward.")
                 Button("Restart Campaign", action: onRestartCampaign)
-                Button("Back To Briefing", action: onBriefing)
+                Button("Return To Briefing", action: onBriefing)
             }
         }
     }
