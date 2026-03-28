@@ -4,6 +4,8 @@ import Foundation
 struct RenderSnapshot: Equatable {
     struct PlayerSprite: Equatable {
         var position: CGPoint
+        var shipGraphicIndex: Int
+        var bank: Int
         var frontWeaponColorHex: String
         var shieldColorHex: String
         var shieldActive: Bool
@@ -35,12 +37,14 @@ struct RenderSnapshot: Equatable {
     struct CreditSprite: Equatable, Identifiable {
         let id: Int
         var position: CGPoint
+        var presentationRef: String?
     }
 
     struct PickupSprite: Equatable, Identifiable {
         let id: Int
         var position: CGPoint
         var kind: PickupKind
+        var presentationRef: String?
     }
 
     struct HazardSprite: Equatable, Identifiable {
@@ -97,6 +101,7 @@ struct RenderSnapshot: Equatable {
         let frontWeapon = PrototypeData.frontWeaponIndex[runState.loadout.frontWeaponID] ?? PrototypeData.frontWeapons[0]
         let rearWeapon = PrototypeData.rearWeaponIndex[runState.loadout.rearWeaponID] ?? PrototypeData.rearWeapons[0]
         let shield = PrototypeData.shieldIndex[runState.loadout.shieldID] ?? PrototypeData.shields[0]
+        let ship = TyrianCatalogData.shipIndex[runState.loadout.shipID] ?? TyrianCatalogData.ships[0]
         let leftSidekick = PrototypeData.sidekickIndex[runState.loadout.leftSidekickID] ?? PrototypeData.sidekicks[0]
         let rightSidekick = PrototypeData.sidekickIndex[runState.loadout.rightSidekickID] ?? PrototypeData.sidekicks[0]
 
@@ -128,6 +133,8 @@ struct RenderSnapshot: Equatable {
             stageTime: 9.5,
             player: PlayerSprite(
                 position: playerPosition,
+                shipGraphicIndex: ship.shipGraphicIndex,
+                bank: 0,
                 frontWeaponColorHex: frontWeapon.colorHex,
                 shieldColorHex: shield.colorHex,
                 shieldActive: true,
@@ -145,11 +152,11 @@ struct RenderSnapshot: Equatable {
                 ProjectileSprite(id: 12, position: CGPoint(x: 178, y: 290), radius: 6, colorHex: rearWeapon.colorHex, isPlayerOwned: false)
             ],
             credits: [
-                CreditSprite(id: 20, position: CGPoint(x: 132, y: 332)),
-                CreditSprite(id: 21, position: CGPoint(x: 236, y: 298))
+                CreditSprite(id: 20, position: CGPoint(x: 132, y: 332), presentationRef: "credits-small"),
+                CreditSprite(id: 21, position: CGPoint(x: 236, y: 298), presentationRef: "credits-small")
             ],
             pickups: [
-                PickupSprite(id: 40, position: CGPoint(x: 186, y: 260), kind: .frontPower)
+                PickupSprite(id: 40, position: CGPoint(x: 186, y: 260), kind: .frontPower, presentationRef: "front-power")
             ],
             hazards: [
                 HazardSprite(id: 50, frame: CGRect(x: 72, y: 196, width: 216, height: 20), colorHex: "#9ba9ff")

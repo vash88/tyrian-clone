@@ -10,7 +10,7 @@ This spec package is grounded in:
 - `references/opentyrian-master/doc/files.txt` for data ownership and campaign-script structure.
 - `references/opentyrian-master/doc/tyrian.hdt.txt` for decoded item, weapon, ship, sidekick, shield, and enemy data structures.
 - `references/opentyrian-master/src/mainint.c`, `player.c`, `varz.c`, and `config.h` for implementation clues and default loadout behavior.
-- `rewrite-prototype/src/game/*` for the current project's reduced baseline and naming bridge.
+- `10-asset-acquisition-and-pipeline.md` for the canonical asset sourcing, extraction, and runtime bundling policy.
 
 ## Product Goal
 
@@ -219,8 +219,14 @@ The following types are canonical. Their field-level definitions live in the ref
 | `LevelEvent` / `WaveDefinition` | Spawn, hazard, script, and reward events inside a level timeline | `05-levels-nav-and-datacubes.md` |
 | `NavNodeDefinition` | Campaign graph node for level, shop, datacube, branch, or intermission content | `05-levels-nav-and-datacubes.md` |
 | `DatacubeDefinition` | Player-readable intel collectible with script and unlock payload | `05-levels-nav-and-datacubes.md` |
-| `ShopInventoryRule` | Availability logic and pricing for shop entries at a progression point | `06-shop-economy-and-upgrades.md` |
-| `PickupDefinition` | In-level pickup type, effect, persistence, and collision behavior | `02-player-combat-and-loadout.md` |
+| `PickupDefinition` | In-level collectible with runtime effect, presentation id, and reward semantics | `02-player-combat-and-loadout.md` |
+| `ShopInventoryRule` | Shop availability gate and inventory rule at a campaign node | `06-shop-economy-and-upgrades.md` |
+
+## Canonical Supporting Docs
+
+The following supporting document is part of the canonical gameplay package:
+
+- `10-asset-acquisition-and-pipeline.md` defines how original Tyrian art is sourced, extracted, curated, and consumed by the runtime.
 
 ## Canonical Terminology
 
@@ -246,4 +252,3 @@ The spec package is complete only if:
 - first-pass enemy and boss roles are explicit
 - every first-pass content item is tagged as exact, approximated, or placeholder
 - this document remains consistent with all seven domain docs
-

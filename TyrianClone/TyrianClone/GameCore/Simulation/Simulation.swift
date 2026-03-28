@@ -173,6 +173,8 @@ final class Simulation {
             stageTime: elapsed,
             player: RenderSnapshot.PlayerSprite(
                 position: CGPoint(x: player.x, y: player.y),
+                shipGraphicIndex: ship.shipGraphicIndex,
+                bank: playerBankIndex(),
                 frontWeaponColorHex: frontWeapon.colorHex,
                 shieldColorHex: (PrototypeData.shieldIndex[runState.loadout.shieldID] ?? PrototypeData.shields[0]).colorHex,
                 shieldActive: player.shield > 1,
@@ -198,13 +200,20 @@ final class Simulation {
                     isPlayerOwned: projectile.owner == .player
                 )
             },
-            credits: credits.map { RenderSnapshot.CreditSprite(id: $0.id, position: CGPoint(x: $0.x, y: $0.y)) },
+            credits: credits.map {
+                RenderSnapshot.CreditSprite(
+                    id: $0.id,
+                    position: CGPoint(x: $0.x, y: $0.y),
+                    presentationRef: "credits-small"
+                )
+            },
             pickups: pickups.map { pickup in
                 let definition = TyrianCatalogData.pickupIndex[pickup.pickupID] ?? TyrianCatalogData.pickups[0]
                 return RenderSnapshot.PickupSprite(
                     id: pickup.id,
                     position: CGPoint(x: pickup.x, y: pickup.y),
-                    kind: definition.kind
+                    kind: definition.kind,
+                    presentationRef: definition.presentationRef
                 )
             },
             hazards: hazards.map {
@@ -228,6 +237,26 @@ final class Simulation {
             },
             bossLineColorHex: bossIsActive() ? rearWeapon.colorHex : nil
         )
+    }
+
+    private func playerBankIndex() -> Int {
+        let maxSpeed = Self.basePlayerSpeed * max(ship.speedBand, 0.1)
+        let normalized = player.vx / max(maxSpeed, 1)
+
+        if normalized <= -0.7 {
+            return -2
+        }
+        if normalized <= -0.28 {
+            return -1
+        }
+        if normalized >= 0.7 {
+            return 2
+        }
+        if normalized >= 0.28 {
+            return 1
+        }
+
+        return 0
     }
 
     private func spawnWaves() {

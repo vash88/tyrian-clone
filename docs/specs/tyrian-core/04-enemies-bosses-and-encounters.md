@@ -8,7 +8,6 @@ This document defines the enemy taxonomy, encounter grammar, and first-pass rost
 
 - `tyrian.hdt.txt` decodes enemy records and confirms a large authored enemy set for episodes 1-3.
 - `manual.doc` establishes world tone and environment style that should shape encounter composition.
-- `rewrite-prototype` provides a minimal current baseline with fodder units, pathing enemies, and one boss.
 
 ## Enemy Taxonomy
 

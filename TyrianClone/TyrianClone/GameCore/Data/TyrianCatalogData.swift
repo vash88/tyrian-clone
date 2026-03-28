@@ -3,10 +3,10 @@ import CoreGraphics
 
 enum TyrianCatalogData {
     static let ships: [ShipDefinition] = [
-        ShipDefinition(id: "usp-talon", name: "USP Talon", sourceStatus: "exact", armorCapacity: 90, speedBand: 1.0, shopCost: 0, unlockRule: "starter", notes: "Operational starter baseline from OpenTyrian init."),
-        ShipDefinition(id: "gencore-phoenix", name: "Gencore Phoenix", sourceStatus: "exact", armorCapacity: 110, speedBand: 0.95, shopCost: 900, unlockRule: "savara-port-shop", notes: nil),
-        ShipDefinition(id: "gencore-maelstrom", name: "Gencore Maelstrom", sourceStatus: "exact", armorCapacity: 132, speedBand: 0.88, shopCost: 1450, unlockRule: "deliani-market-shop", notes: nil),
-        ShipDefinition(id: "usp-fang", name: "USP Fang", sourceStatus: "exact", armorCapacity: 84, speedBand: 1.08, shopCost: 1280, unlockRule: "deliani-market-shop", notes: nil)
+        ShipDefinition(id: "usp-talon", name: "USP Talon", shipGraphicIndex: 233, bigShipGraphicIndex: 32, sourceStatus: "exact", armorCapacity: 90, speedBand: 1.0, shopCost: 0, unlockRule: "starter", notes: "Operational starter baseline from OpenTyrian init."),
+        ShipDefinition(id: "gencore-phoenix", name: "Gencore Phoenix", shipGraphicIndex: 157, bigShipGraphicIndex: 28, sourceStatus: "exact", armorCapacity: 110, speedBand: 0.95, shopCost: 900, unlockRule: "savara-port-shop", notes: nil),
+        ShipDefinition(id: "gencore-maelstrom", name: "Gencore Maelstrom", shipGraphicIndex: 157, bigShipGraphicIndex: 28, sourceStatus: "exact", armorCapacity: 132, speedBand: 0.88, shopCost: 1450, unlockRule: "deliani-market-shop", notes: nil),
+        ShipDefinition(id: "usp-fang", name: "USP Fang", shipGraphicIndex: 233, bigShipGraphicIndex: 32, sourceStatus: "exact", armorCapacity: 84, speedBand: 1.08, shopCost: 1280, unlockRule: "deliani-market-shop", notes: nil)
     ]
 
     static let frontWeapons: [WeaponPortDefinition] = [
@@ -311,12 +311,12 @@ enum TyrianCatalogData {
     ]
 
     static let pickups: [PickupDefinition] = [
-        PickupDefinition(id: "credits-small", kind: .credits, presentationRef: nil, applyMode: .immediate, value: 25, persistOnFailure: true, notes: nil),
-        PickupDefinition(id: "front-power", kind: .frontPower, presentationRef: nil, applyMode: .immediate, value: 1, persistOnFailure: false, notes: nil),
-        PickupDefinition(id: "rear-power", kind: .rearPower, presentationRef: nil, applyMode: .immediate, value: 1, persistOnFailure: false, notes: nil),
-        PickupDefinition(id: "armor-repair", kind: .armorRepair, presentationRef: nil, applyMode: .immediate, value: 20, persistOnFailure: false, notes: nil),
-        PickupDefinition(id: "shield-restore", kind: .shieldRestore, presentationRef: nil, applyMode: .immediate, value: 28, persistOnFailure: false, notes: nil),
-        PickupDefinition(id: "sidekick-ammo-small", kind: .sidekickAmmo, presentationRef: nil, applyMode: .immediate, value: 10, persistOnFailure: false, notes: nil)
+        PickupDefinition(id: "credits-small", kind: .credits, presentationRef: "credits-small", applyMode: .immediate, value: 25, persistOnFailure: true, notes: "Original spriteSheet11 gem cell."),
+        PickupDefinition(id: "front-power", kind: .frontPower, presentationRef: "front-power", applyMode: .immediate, value: 1, persistOnFailure: false, notes: "Original spriteSheet10 powerup cell."),
+        PickupDefinition(id: "rear-power", kind: .rearPower, presentationRef: "rear-power", applyMode: .immediate, value: 1, persistOnFailure: false, notes: "Original spriteSheet10 powerup cell."),
+        PickupDefinition(id: "armor-repair", kind: .armorRepair, presentationRef: "armor-repair", applyMode: .immediate, value: 20, persistOnFailure: false, notes: "Original spriteSheet11 gem cell."),
+        PickupDefinition(id: "shield-restore", kind: .shieldRestore, presentationRef: "shield-restore", applyMode: .immediate, value: 28, persistOnFailure: false, notes: "Original spriteSheet11 gem cell."),
+        PickupDefinition(id: "sidekick-ammo-small", kind: .sidekickAmmo, presentationRef: "sidekick-ammo-small", applyMode: .immediate, value: 10, persistOnFailure: false, notes: "Original spriteSheet11 supply cell.")
     ]
 
     static let shopRules: [ShopInventoryRule] = [

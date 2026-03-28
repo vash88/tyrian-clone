@@ -338,6 +338,8 @@ typealias SidekickArchetype = SidekickDefinition
 struct ShipDefinition: Equatable, Identifiable {
     let id: String
     let name: String
+    let shipGraphicIndex: Int
+    let bigShipGraphicIndex: Int?
     let sourceStatus: String
     let armorCapacity: Double
     let speedBand: Double
